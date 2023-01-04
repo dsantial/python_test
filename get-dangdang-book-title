@@ -1,0 +1,23 @@
+from bs4 import BeautifulSoup
+import requests
+import unicodedata
+
+
+url = 'http://bang.dangdang.com/books/bestsellers/01.00.00.00.00.00-24hours-0-0-1-1'
+response = requests.get(url).text
+soup = BeautifulSoup(response,'lxml')
+
+# 锁定ul后获取20个li
+li_list = soup.find('ul', class_='bang_list clearfix bang_list_mode').find_all('li')
+# 逐个解析获取书名
+for li in li_list:
+    title = li.find('div',class_='name').find('a')['title']
+    # 中文字符转换为英文字符,把书名提取出来(括号里的介绍太长了)
+    tt = unicodedata.normalize('NFKC', title).split(' ')[0].split('(').pop(0)
+
+    pic_url = li.find('div',class_='pic').find('img')['src']
+
+    pic = requests.get(pic_url)
+# 把图片写入本地
+    with open('./img/'+tt+'.png', "wb") as f:
+        f.write(pic.content)
